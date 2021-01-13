@@ -33,10 +33,16 @@ syntax , [FOLDer(str)]
 	
 		* Check if the master data is in stata format
 		if !regexm("`master'", ".dta$") {
-			di "`master'"
 			noi di as err "Invalid data format: the master file should be a .dta file"
 			exit
 		}
+		
+		* Check if neccesary options are specified
+		if "`folder'" == "" | "`master'" =="" | "`outfolder'" =="" {
+			noi di as err "Three options required [Folder, master, outfolder], but at least one is missing"
+			exit
+		}
+				
 		
 		* Set Parent and child keys
 		if "`parentkey'" != "" loc parent_key `parentkey'
@@ -49,6 +55,9 @@ syntax , [FOLDer(str)]
 		noi di ""
 		noi di "Reshapping individual repeat goups"
 		noi di "{hline}"
+		
+		cap mkdir "`outfolder'" 
+
 
 		* Save file names of child datasets in local
 		*===========================================
@@ -332,11 +341,15 @@ syntax , [FOLDer(str)]
 		*===============================================
 		* Loop through reshaped data for nested repeat *
 		*===============================================
-
+		
+		
+		if "`outfile'" != "" & !regexm("`outfile'", ".dta$") loc outfile "`outfile'.dta"
+		if "`outfile'" == "" loc outfile "`master'"
+		
 		copy "`folder'/`master'" ///
-			 "`outfolder'/`outfile'.dta" , replace
+			 "`outfolder'/`outfile'" , replace
 
-		use "`outfolder'/`outfile'.dta", clear
+		use "`outfolder'/`outfile'", clear
 		sort key
 		save "`outfile'", replace
 		 
@@ -350,21 +363,24 @@ syntax , [FOLDer(str)]
 		forval i = 1/`num' {
 
 			local file : word `i' of `files'
-			
-			if "`file'" != "`outfile'.dta" {
+						
+			if "`file'" != "`outfile'" {
 				use "`outfolder'/`file'", clear
+				
+				if `ma' == 1 loc num_a = `i' - 1
+				else 		 loc num_a = `i'
 				
 				ren key `child_key'
 				cap ren p_key key
 				
-				loc m_i = `i' - 1
-				noi di " merging repeat group # `m_i'"
+				noi di " merging repeat group # `num_a'"
 				
-				merge 1:m key using  "`outfile'.dta", nogen nonotes noreport
+				merge 1:m key using  "`outfile'", nogen nonotes noreport
 				sort key
-				save "`outfile'.dta", replace
+				save "`outfile'", replace
 			}
 			
+			else loc ma = 1
 		}		
 		
 		drop `parent_key' setof* `child_key'
