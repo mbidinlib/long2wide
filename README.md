@@ -31,6 +31,8 @@ net install shortlist, all replace ///
 
 ```
 
+## Options:
+
 ### Folder:
 	Folder path for all raw data files (.dta)
 ### Master
