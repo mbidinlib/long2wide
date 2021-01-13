@@ -29,6 +29,7 @@ syntax , [FOLDer(str)]
 
 	qui{
 	
+		cls
 	
 		* Check if the master data is in stata format
 		if !regexm("`master'", ".dta$") {
@@ -44,6 +45,10 @@ syntax , [FOLDer(str)]
 		if "`childkey'" != "" loc child_key `childkey'
 		else loc child_key "child_key"
 
+		
+		noi di ""
+		noi di "Reshapping individual repeat goups"
+		noi di "{hline}"
 
 		* Save file names of child datasets in local
 		*===========================================
@@ -62,6 +67,8 @@ syntax , [FOLDer(str)]
 			if "`file'" ~= "`master'" {
 				
 				use "`folder'/`file'", clear
+				
+				noi di "`file'"
 				
 				cap drop setof*
 
@@ -317,40 +324,45 @@ syntax , [FOLDer(str)]
 
 
 
+		noi di "{hline}"
+		noi di ""
+		noi di "Merging repeat groups"
+		noi di "{hline}"
+		
 		*===============================================
 		* Loop through reshaped data for nested repeat *
 		*===============================================
 
 		copy "`folder'/`master'" ///
-			 "`outfolder'/`master'" , replace
+			 "`outfolder'/`outfile'.dta" , replace
 
-		use "`outfolder'/`master'", clear
+		use "`outfolder'/`outfile'.dta", clear
 		sort key
-		tempfile masterfile
-		save "`masterfile'", replace
+		save "`outfile'", replace
 		 
 		local files : dir "`outfolder'" files "*", respectcase
 		local num	: word count `files' 
-		local num = `num' - 1
+		local num_c = `num' - 1
 
-		noi di "Number of repeat groups: " _column(10) " `num'" 
+		noi di "Number of repeat groups: " _column(10) " `num_c'" 
 		noi di "{hline}"
 
 		forval i = 1/`num' {
-	
+
 			local file : word `i' of `files'
 			
-			if "`file'" != "`master'" {
+			if "`file'" != "`outfile'.dta" {
 				use "`outfolder'/`file'", clear
 				
 				ren key `child_key'
-				ren p_key key
+				cap ren p_key key
 				
-				noi di " merging repeat group # `i'"
+				loc m_i = `i' - 1
+				noi di " merging repeat group # `m_i'"
 				
-				merge 1:m key using  "`masterfile'", nogen nonotes noreport
+				merge 1:m key using  "`outfile'.dta", nogen nonotes noreport
 				sort key
-				save "`masterfile'", replace
+				save "`outfile'.dta", replace
 			}
 			
 		}		
@@ -360,6 +372,9 @@ syntax , [FOLDer(str)]
 		if "`outfile'" != "" {
 			save "`outfolder'/`outfile'", replace
 		}
+		
+		noi di ""
+		noi di "THE END"
 	}
 	
 end
