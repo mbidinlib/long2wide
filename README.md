@@ -18,7 +18,7 @@ net install shortlist, all replace ///
 
 ```stata
 
- long2wide , ///
+ long2wide , 					///
 	folder(folder path for dta files) 	///
 	master(master dataset name) 		///
 	outfile(wide output file name) 		///
