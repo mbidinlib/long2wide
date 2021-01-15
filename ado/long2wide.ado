@@ -51,11 +51,6 @@ syntax , [FOLDer(str)]
 		
 		if "`childkey'" != "" loc child_key `childkey'
 		else loc child_key "child_key"
-
-		* Set Long data format
-		if "`longpattern'" != "" loc long_part `longpattern'
-		else loc long_part "*"
-		
 		
 		noi di ""
 		noi di "Reshapping individual repeat goups"
@@ -67,7 +62,7 @@ syntax , [FOLDer(str)]
 		* Save file names of child datasets in local
 		*===========================================
 
-		local files : dir "`folder'" files "`long_part'", respectcase
+		local files : dir "`folder'" files "`longpattern'*", respectcase
 		local num	: word count `files'
 
 		*====================================
@@ -358,7 +353,7 @@ syntax , [FOLDer(str)]
 		sort key
 		save "`outfile'", replace
 		 
-		local files : dir "`outfolder'" files "`long_part'", respectcase
+		local files : dir "`outfolder'" files "`longpattern'*", respectcase
 		local num	: word count `files' 
 		local num_c = `num' - 1
 
