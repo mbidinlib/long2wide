@@ -17,7 +17,7 @@ syntax , [FOLDer(str)]
 		  [Key(name)] 
 		  [CHILDkey(name)] 
 		  [PARENTkey(name)] 
-		  [DROPEXTRANum(real)] 
+		  [DROPEXTRANum(real 0)] 
 		  [DROPEXTRAName(str)]
 		  [LONGPattern(str)]
 
