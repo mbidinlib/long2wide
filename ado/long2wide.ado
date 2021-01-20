@@ -354,18 +354,19 @@ program define long2wide
 
 		use "`outfolder'/`outfile'", clear
 		sort key
-		save "`outfile'", replace
 		
 		* converted repeat grop files
 		*-===========================
 		local files : dir "`outfolder'" files "`longpattern'*", respectcase
 		local num	: word count `files' 
-		local num_c = `num' - 1
+		
+		if "`longpattern'" == "" local num_c = `num'-1
+		else 					 local num_c = `num'
 
 		noi di "Number of repeat groups: " _column(10) " `num_c'" 
 		noi di "{hline}"
 
-		use "`outfile'", clear
+		use "`outfolder'/`outfile'", clear
 		ren key p_key
 		sort p_key
 		
