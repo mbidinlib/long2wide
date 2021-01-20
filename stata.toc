@@ -1,3 +1,0 @@
-v 0.0.1
-d Long to wide and clean
-p Program that reshaps from long to wide and cleans extra variable
