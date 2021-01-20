@@ -59,6 +59,11 @@ syntax , [FOLDer(str)]
 		cap mkdir "`outfolder'" 
 
 
+		* Save master variables and use for a
+		*============================
+		
+		
+		
 		* Save file names of child datasets in local
 		*===========================================
 
@@ -76,6 +81,25 @@ syntax , [FOLDer(str)]
 			if "`file'" ~= "`master'" {
 				
 				use "`folder'/`file'", clear
+				
+				
+				
+				* drop extra  variales for large unexpected repeats
+				***************************************************
+				
+				if `dropextranum' != 0 | "`dropextraname'" !="" {
+					
+					loc vrl  ""
+					foreach vr or varl _all{
+						loc vrl = "`vrl'" + ",`vr'"
+					}
+					
+					drp if mi(vrl)
+					
+					
+				}	
+				
+				
 				
 				noi di "`file'"
 				
@@ -135,8 +159,7 @@ syntax , [FOLDer(str)]
 						replace key = subinstr(key, "]", "",1)
 									
 						* Create empty varibles for previous 
-						* Levels of repeat (applicable to 
-						* nested repeat
+						* Levels of repeat (applicable to nested repeat
 						*===================================
 						unab vs2 : _all 									
 						unab rmove2 : p_key pkey_* `parent_key' key  `parent_key'_o
@@ -144,7 +167,6 @@ syntax , [FOLDer(str)]
 						
 						loc rn_vars2: list vs2 - rmove2 			// remove vars not needed
 									 
-					
 						destring  pkey_ind`j', replace
 						qui sum   pkey_ind`j'
 						loc l_val`j'  `r(max)'
@@ -291,29 +313,7 @@ syntax , [FOLDer(str)]
 				ren `parent_key'_o 	`parent_key'
 				ren key_o			key
 				
-				* drop extra  variales for large unexpected repeats
-				***************************************************
-				
-				if "`dropextranum'" !="" | "`dropextraname'" !="" {
-					unab all : _all
-					loc var_count : word count `all'
 
-					if `var_count' > `dropextranum' | "`file'" == "`dropextraname'" {
-					
-						foreach var of varlist _all {
-							capture assert( mi(`var'))
-							 if !_rc {
-								drop `var'
-							 }
-						 }
-					}
-
-				}
-				
-				*copy "${dir_hh_survey}/long/`file'"  "${dir_hh_survey}/long/successfull/`file'" , replace
-				*rm "${dir_hh_survey}/long/`file'"
-				
-				* replace for each key
 				gen _backward = -_n
 				foreach p of varl _all {
 					bys p_key (_backward): replace `p'= `p'[_n-1] if missing(`p')	
@@ -342,7 +342,6 @@ syntax , [FOLDer(str)]
 		* Loop through reshaped data for nested repeat *
 		*===============================================
 		
-		
 		if "`outfile'" != "" & !regexm("`outfile'", ".dta$") loc outfile "`outfile'.dta"
 		if "`outfile'" == "" loc outfile "`master'"
 		
@@ -352,7 +351,9 @@ syntax , [FOLDer(str)]
 		use "`outfolder'/`outfile'", clear
 		sort key
 		save "`outfile'", replace
-		 
+		
+		* converted repeat grop files
+		*-===========================
 		local files : dir "`outfolder'" files "`longpattern'*", respectcase
 		local num	: word count `files' 
 		local num_c = `num' - 1
@@ -360,35 +361,30 @@ syntax , [FOLDer(str)]
 		noi di "Number of repeat groups: " _column(10) " `num_c'" 
 		noi di "{hline}"
 
+		use "`outfile'", clear
+		ren key p_key
+		sort p_key
+		
+		loc ma = 0
 		forval i = 1/`num' {
 
 			local file : word `i' of `files'
-						
-			if "`file'" != "`outfile'" {
-				use "`outfolder'/`file'", clear
-				
-				if `ma' == 1 loc num_a = `i' - 1
-				else 		 loc num_a = `i'
-				
-				ren key `child_key'
-				cap ren p_key key
-				
-				noi di " merging repeat group # `num_a'"
-				
-				merge 1:m key using  "`outfile'", nogen nonotes noreport
-				sort key
-				save "`outfile'", replace
-			}
 			
-			else loc ma = 1
-		}		
-		
-		drop `parent_key' setof* `child_key'
+			if "`file'" != "`outfile'" {
+				
+				loc ma =`ma'+1
+				noi di " merging repeat group # `ma'"
+				
+				merge m:1 p_key using  "`outfolder'/`file'", nogen nonotes noreport
 
-		if "`outfile'" != "" {
-			save "`outfolder'/`outfile'", replace
-		}
+			    *save "`outfile'", replace
+			 }
+			
+		   }		
 		
+		drop `parent_key' setof* 
+		save "`outfolder'/`outfile'", replace
+			
 		noi di ""
 		noi di "THE END"
 	}
