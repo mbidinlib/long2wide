@@ -386,11 +386,15 @@ program define long2wide
 			
 		   }		
 		
+		cap drop key
+		ren p_key key
+		
 		drop `parent_key' setof* 
 		save "`outfolder'/`outfile'", replace
 			
 		noi di ""
 		noi di "THE END"
 	}
+	
 	
 end
