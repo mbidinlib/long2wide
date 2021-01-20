@@ -1,0 +1,12 @@
+0.0.1
+d 'Longtowide': Stata program that converts data from long to wide and cleans extra columns
+d
+d KW: reshape
+d KW: long data to wide
+d KW: convert long data
+d
+d Distribution-Date: 20210111
+d
+d Authors: Mathew Bidinlib, Innovations for Poverty Action
+d Support: mbidinlib@poverty-action.org
+f long2wide.ado
