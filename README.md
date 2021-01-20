@@ -10,7 +10,7 @@ This stata program de-identify data and labels some variables
 ## installation(Beta)
 
 ```stata
-net install shortlist, all replace ///
+net install long2wide, all replace ///
 	from("https://raw.githubusercontent.com/mbidinlib/long2wide/master/ado")
 ```
 
