@@ -10,7 +10,7 @@ program define long2wide
 
  #d ;
 
-syntax , [FOLDer(str)] 
+ syntax , [FOLDer(str)] 
 		  [MASTer(str)] 
 		  [OUTFolder(str)] 
 		  [OUTFile(str)] 
@@ -27,7 +27,8 @@ syntax , [FOLDer(str)]
 
 	clear all
 	set more off
-
+	set min_memory 1g, perm
+	 
 	qui{
 	
 		cls
@@ -81,25 +82,6 @@ syntax , [FOLDer(str)]
 			if "`file'" ~= "`master'" {
 				
 				use "`folder'/`file'", clear
-				
-				
-				
-				* drop extra  variales for large unexpected repeats
-				***************************************************
-				
-				if `dropextranum' != 0 | "`dropextraname'" !="" {
-					
-					loc vrl  ""
-					foreach vr or varl _all{
-						loc vrl = "`vrl'" + ",`vr'"
-					}
-					
-					drp if mi(vrl)
-					
-					
-				}	
-				
-				
 				
 				noi di "`file'"
 				
@@ -313,7 +295,29 @@ syntax , [FOLDer(str)]
 				ren `parent_key'_o 	`parent_key'
 				ren key_o			key
 				
+				
+				* drop extra  variales for large unexpected repeats
+				***************************************************
+				
+				if "`dropextranum'" !="" | "`dropextraname'" !="" {
+					unab all : _all
+					loc var_count : word count `all'
 
+					if `var_count' > `dropextranum' | "`file'" == "`dropextraname'" {
+					
+						foreach var of varlist _all {
+							capture assert( mi(`var'))
+							 if !_rc {
+								drop `var'
+							 }
+						 }
+					}
+
+				}
+		
+				
+				
+				
 				gen _backward = -_n
 				foreach p of varl _all {
 					bys p_key (_backward): replace `p'= `p'[_n-1] if missing(`p')	
